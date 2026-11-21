@@ -1,114 +1,52 @@
-# 📊 Student Performance Prediction using Linear Regression
+# Student Pass/Fail Prediction
 
-This project demonstrates a **simple Machine Learning model** that predicts a student's **final score** based on academic and behavioral factors using **Linear Regression**.
+This project trains a binary classifier to predict whether a student will pass
+based on academic features. A final score of **50 or higher** is labeled Pass;
+a lower score is labeled Fail.
 
-It is designed for **beginners** to understand the complete ML workflow:
-data loading → preprocessing → training → evaluation → prediction.
+## Features
 
----
+- Load student records from `student_performance_real.csv`
+- Impute missing feature values and scale numeric features
+- Train a Logistic Regression classifier
+- Evaluate held-out results with accuracy, precision, recall, F1, and a confusion matrix
+- Predict Pass/Fail outcomes and pass probabilities for example students
 
-## 🚀 Features
+## Dataset
 
-- Load real-world student performance data from a CSV file
-- Train a **Linear Regression** model
-- Evaluate model performance using **Mean Squared Error (MSE)**
-- Predict final scores for new students
+The CSV contains `study_hours`, `attendance`, `previous_marks`,
+`assignments_submitted`, and `final_score`. The final score creates the Pass/Fail
+label and is not included as a model feature.
 
----
+The current dataset has 63 records, so the results are an initial estimate and
+may not generalize to other schools or student populations. Use a larger,
+representative set of actual records and a separate evaluation dataset before
+using this model for consequential decisions. Do not present generated records
+as real observations.
 
-## 🧠 Dataset Description
+## Run
 
-The dataset (`student_performance_real.csv`) contains the following columns:
+Install the dependencies:
 
-| Column Name | Description |
-|------------|------------|
-| `study_hours` | Number of hours studied |
-| `attendance` | Attendance percentage |
-| `previous_marks` | Marks from previous exams |
-| `assignments_submitted` | Number of assignments submitted |
-| `final_score` | Final exam score (target variable) |
-
----
-
-## 🛠️ Technologies Used
-
-- **Python**
-- **Pandas**
-- **Scikit-learn**
-
----
-
-## 📦 Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/gaurab-arl/StudentPerformancePrediction-ML.git
-   ```
-
-2. Navigate to the project folder:
-   ```bash
-   cd student-performance-prediction
-   ```
-
-3. Install required libraries:
-   ```bash
-   pip install pandas scikit-learn
-   ```
-
----
-
-## ▶️ How to Run
-
-1. Make sure `student_performance_real.csv` is in the same directory.
-
-2. Run the Python script:
-   ```bash
-   python main.py
-   ```
-
----
-
-## 📈 Model Workflow
-
-1. Load dataset using Pandas
-2. Separate features and target variable
-3. Split data into training and testing sets (80/20)
-4. Train a Linear Regression model
-5. Evaluate using Mean Squared Error
-6. Predict scores for new students
-
----
-
-## 🔍 Sample Prediction Output
-
-```
-Predicted Final Scores for New Students:
-Student 1: 74.52
-Student 2: 86.13
-Student 3: 58.90
+```bash
+pip install pandas scikit-learn
 ```
 
----
+Run the pipeline from the project directory:
 
-## 📚 Learning Outcomes
+```bash
+python main.py
+```
 
-- Understanding supervised learning
-- Hands-on experience with Linear Regression
-- Real-world dataset handling
-- Model evaluation basics
+The script uses a stratified 80/20 train/test split with a fixed random seed.
+It prints the held-out metrics, confusion matrix, and example predictions.
 
----
+## Technologies
 
-## 📌 Future Improvements
+- Python
+- Pandas
+- Scikit-learn
 
-- Add data visualization
-- Try other ML models (Decision Tree, Random Forest)
-- Add feature scaling
-- Save and load trained models
+## Author
 
----
-
-## 👤 Author
-
-**Gaurab Aryal**  
-Beginner ML & Web Developer 🚀
+Gaurab Aryal

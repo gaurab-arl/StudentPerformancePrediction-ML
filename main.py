@@ -1,44 +1,95 @@
+from pathlib import Path
+
 import pandas as pd
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import (
+    accuracy_score,
+    confusion_matrix,
+    f1_score,
+    precision_score,
+    recall_score,
+)
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
-# Step 1: Load CSV dataset
-df = pd.read_csv("student_performance_real.csv")
+PASS_MARK = 50
+FEATURES = [
+    "study_hours",
+    "attendance",
+    "previous_marks",
+    "assignments_submitted",
+]
 
-print("Dataset Preview:")
-print(df.head())
 
-# Step 2: Prepare data (features and target)
-X = df[['study_hours', 'attendance', 'previous_marks', 'assignments_submitted']]
-y = df['final_score']
+def main() -> None:
+    dataset_path = Path(__file__).resolve().with_name("student_performance_real.csv")
+    df = pd.read_csv(dataset_path)
 
-# Step 3: Split data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    required_columns = FEATURES + ["final_score"]
+    missing_columns = sorted(set(required_columns) - set(df.columns))
+    if missing_columns:
+        raise ValueError(
+            f"Dataset is missing required columns: {', '.join(missing_columns)}"
+        )
 
-# Step 4: Initialize and train the Linear Regression model
-model = LinearRegression()
-model.fit(X_train, y_train)
+    if df["final_score"].isna().any():
+        raise ValueError("The final_score column contains missing values.")
 
-# Step 5: Make predictions on the test set
-y_pred = model.predict(X_test)
+    X = df[FEATURES]
+    y = (df["final_score"] >= PASS_MARK).astype(int)
+    if y.nunique() != 2:
+        raise ValueError("The dataset must contain both Pass and Fail examples.")
 
-# Step 6: Evaluate model performance
-mse = mean_squared_error(y_test, y_pred)
-print(f"\nMean Squared Error: {mse:.2f}")
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        test_size=0.2,
+        random_state=42,
+        stratify=y,
+    )
 
-# Step 7: Demonstrate prediction on new data
-new_student_data = pd.DataFrame({
-    'study_hours': [5, 8, 3],
-    'attendance': [85, 92, 60],
-    'previous_marks': [70, 85, 50],
-    'assignments_submitted': [8, 10, 4]
-})
+    model = make_pipeline(
+        SimpleImputer(strategy="median"),
+        StandardScaler(),
+        LogisticRegression(max_iter=1000, random_state=42),
+    )
+    model.fit(X_train, y_train)
+    predictions = model.predict(X_test)
 
-predicted_scores = model.predict(new_student_data)
+    print(f"Dataset rows: {len(df)}")
+    print(f"Pass mark: {PASS_MARK} (inclusive)")
+    print(f"Training rows: {len(X_train)} | Test rows: {len(X_test)}")
+    print(f"Test accuracy: {accuracy_score(y_test, predictions):.2%}")
+    print(
+        f"Pass precision: {precision_score(y_test, predictions, zero_division=0):.2%}"
+    )
+    print(f"Pass recall: {recall_score(y_test, predictions, zero_division=0):.2%}")
+    print(f"Pass F1 score: {f1_score(y_test, predictions, zero_division=0):.2%}")
 
-print("\nPredicted Final Scores for New Students:")
-for i, score in enumerate(predicted_scores):
-    print(f"Student {i+1}: {score:.2f}")
+    matrix = confusion_matrix(y_test, predictions, labels=[0, 1])
+    print("\nConfusion matrix (rows: actual Fail/Pass; columns: predicted Fail/Pass):")
+    print(matrix)
 
-    
+    new_students = pd.DataFrame(
+        {
+            "study_hours": [5, 8, 3],
+            "attendance": [85, 92, 60],
+            "previous_marks": [70, 85, 50],
+            "assignments_submitted": [8, 10, 4],
+        }
+    )
+    outcomes = model.predict(new_students)
+    pass_probabilities = model.predict_proba(new_students)[:, 1]
+
+    print("\nPredictions for example students:")
+    for index, (outcome, probability) in enumerate(
+        zip(outcomes, pass_probabilities), start=1
+    ):
+        label = "Pass" if outcome == 1 else "Fail"
+        print(f"Student {index}: {label} (pass probability: {probability:.1%})")
+
+
+if __name__ == "__main__":
+    main()
